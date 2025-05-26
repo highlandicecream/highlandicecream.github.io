@@ -16,7 +16,8 @@
 <body>
   <h1>Ice Cream Bucket Manager</h1>
   <div style="margin-top:1em;margin-bottom:1em;">
-    <input type="file" id="fileInput" accept=".txt,.tsv" onchange="loadFlavorsTSV(event)">
+    <!-- Add onclick event to allow reload of same file -->
+    <input type="file" id="fileInput" accept=".txt,.tsv" onchange="loadFlavorsTSV(event)" onclick="this.value = null;">
   </div>
   <div>
     <label>
@@ -39,7 +40,8 @@
         <th>Flavor</th>
         <th>Category</th>
         <th>Target Buckets</th>
-        <th>Current Buckets</th>
+        <th>In Dipping</th>
+        <th>In Holding</th>
         <th>To Make</th>
         <th>Actions</th>
       </tr>
@@ -55,99 +57,119 @@
   <script>
     let flavors = [];
 
-function renderTable() {
-  // Sort by category, then by name (both ascending, case-insensitive)
-  flavors.sort((a, b) => {
-    const catA = (a.category || '').toLowerCase();
-    const catB = (b.category || '').toLowerCase();
-    if (catA < catB) return -1;
-    if (catA > catB) return 1;
-    const nameA = (a.name || '').toLowerCase();
-    const nameB = (b.name || '').toLowerCase();
-    if (nameA < nameB) return -1;
-    if (nameA > nameB) return 1;
-    return 0;
-  });
+    function renderTable() {
+      // Sort by category, then by name (both ascending, case-insensitive)
+      flavors.sort((a, b) => {
+        const catA = (a.category || '').toLowerCase();
+        const catB = (b.category || '').toLowerCase();
+        if (catA < catB) return -1;
+        if (catA > catB) return 1;
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        if (nameA < nameB) return -1;
+        if (nameA > nameB) return 1;
+        return 0;
+      });
 
-  const tbody = document.querySelector('#flavorTable tbody');
-  tbody.innerHTML = '';
-  flavors.forEach((flavor, idx) => {
-    const tr = document.createElement('tr');
+      const tbody = document.querySelector('#flavorTable tbody');
+      tbody.innerHTML = '';
+      flavors.forEach((flavor, idx) => {
+        const tr = document.createElement('tr');
 
-    const hexColor = extractHexColor(flavor.category || "");
-    if (hexColor) {
-      tr.style.backgroundColor = hexColor;
+        const hexColor = extractHexColor(flavor.category || "");
+        if (hexColor) {
+          tr.style.backgroundColor = hexColor;
+        }
+
+        // Flavor Name (editable)
+        const tdFlavor = document.createElement('td');
+        const inputFlavor = document.createElement('input');
+        inputFlavor.type = 'text';
+        inputFlavor.value = flavor.name;
+        inputFlavor.onchange = e => updateFlavorField(idx, 'name', e.target.value);
+        tdFlavor.appendChild(inputFlavor);
+        tr.appendChild(tdFlavor);
+
+        // Category (editable)
+        const tdCategory = document.createElement('td');
+        const inputCategory = document.createElement('input');
+        inputCategory.type = 'text';
+        inputCategory.value = flavor.category;
+        inputCategory.onchange = e => updateFlavorField(idx, 'category', e.target.value);
+        tdCategory.appendChild(inputCategory);
+        tr.appendChild(tdCategory);
+
+        // Target Buckets (editable)
+        const tdTarget = document.createElement('td');
+        const inputTarget = document.createElement('input');
+        inputTarget.type = 'number';
+        inputTarget.min = 0;
+        inputTarget.value = flavor.target;
+        inputTarget.onchange = e => {
+          updateFlavorField(idx, 'target', parseInt(e.target.value) || 0);
+          renderTable();
+        };
+        tdTarget.appendChild(inputTarget);
+        tr.appendChild(tdTarget);
+
+        // Current Buckets In Dipping (editable)
+        const tdDipping = document.createElement('td');
+        const inputDipping = document.createElement('input');
+        inputDipping.type = 'number';
+        inputDipping.min = 0;
+        inputDipping.value = flavor.dipping;
+        inputDipping.onchange = e => {
+          updateFlavorField(idx, 'dipping', parseInt(e.target.value) || 0);
+          renderTable();
+        };
+        tdDipping.appendChild(inputDipping);
+        tr.appendChild(tdDipping);
+
+        // Current Buckets In Holding (editable)
+        const tdHolding = document.createElement('td');
+        const inputHolding = document.createElement('input');
+        inputHolding.type = 'number';
+        inputHolding.min = 0;
+        inputHolding.value = flavor.holding;
+        inputHolding.onchange = e => {
+          updateFlavorField(idx, 'holding', parseInt(e.target.value) || 0);
+          renderTable();
+        };
+        tdHolding.appendChild(inputHolding);
+        tr.appendChild(tdHolding);
+
+        // To Make (computed)
+        const tdToMake = document.createElement('td');
+        const toMake = Math.max(0, (parseInt(flavor.target) || 0) - (parseInt(flavor.dipping) || 0) - (parseInt(flavor.holding) || 0));
+        tdToMake.textContent = toMake;
+        tr.appendChild(tdToMake);
+
+        // Actions (remove)
+        const tdActions = document.createElement('td');
+        tdActions.className = 'actions';
+        const btnRemove = document.createElement('button');
+        btnRemove.textContent = 'Remove';
+        btnRemove.addEventListener('click', (e) => {
+          if (confirm(`Are you sure you want to remove ${flavor.name}?`)) {
+            flavors.splice(idx, 1);
+            renderTable();
+          } else {
+            e.preventDefault();
+          }
+        })
+        tdActions.appendChild(btnRemove);
+        tr.appendChild(tdActions);
+
+        tbody.appendChild(tr);
+      });
     }
 
-    // Flavor Name (editable)
-    const tdFlavor = document.createElement('td');
-    const inputFlavor = document.createElement('input');
-    inputFlavor.type = 'text';
-    inputFlavor.value = flavor.name;
-    inputFlavor.onchange = e => updateFlavorField(idx, 'name', e.target.value);
-    tdFlavor.appendChild(inputFlavor);
-    tr.appendChild(tdFlavor);
-
-    // Category (editable)
-    const tdCategory = document.createElement('td');
-    const inputCategory = document.createElement('input');
-    inputCategory.type = 'text';
-    inputCategory.value = flavor.category;
-    inputCategory.onchange = e => updateFlavorField(idx, 'category', e.target.value);
-    tdCategory.appendChild(inputCategory);
-    tr.appendChild(tdCategory);
-
-    // Target Buckets (editable)
-    const tdTarget = document.createElement('td');
-    const inputTarget = document.createElement('input');
-    inputTarget.type = 'number';
-    inputTarget.min = 0;
-    inputTarget.value = flavor.target;
-    inputTarget.onchange = e => {
-      updateFlavorField(idx, 'target', parseInt(e.target.value) || 0);
-      renderTable();
-    };
-    tdTarget.appendChild(inputTarget);
-    tr.appendChild(tdTarget);
-
-    // Current Buckets (editable)
-    const tdCurrent = document.createElement('td');
-    const inputCurrent = document.createElement('input');
-    inputCurrent.type = 'number';
-    inputCurrent.min = 0;
-    inputCurrent.value = flavor.current;
-    inputCurrent.onchange = e => {
-      updateFlavorField(idx, 'current', parseInt(e.target.value) || 0);
-      renderTable();
-    };
-    tdCurrent.appendChild(inputCurrent);
-    tr.appendChild(tdCurrent);
-
-    // To Make (computed)
-    const tdToMake = document.createElement('td');
-    const toMake = Math.max(0, (parseInt(flavor.target) || 0) - (parseInt(flavor.current) || 0));
-    tdToMake.textContent = toMake;
-    tr.appendChild(tdToMake);
-
-    // Actions (remove)
-    const tdActions = document.createElement('td');
-    tdActions.className = 'actions';
-    const btnRemove = document.createElement('button');
-    btnRemove.textContent = 'Remove';
-    btnRemove.onclick = () => { flavors.splice(idx, 1); renderTable(); };
-    tdActions.appendChild(btnRemove);
-    tr.appendChild(tdActions);
-
-    tbody.appendChild(tr);
-  });
-}
-
-function updateFlavorField(idx, field, value) {
-  flavors[idx][field] = value;
-  if (field === 'name' || field === 'category') {
-    renderTable(); // Immediately re-sort and re-render if name or category changes
-  }
-}
+    function updateFlavorField(idx, field, value) {
+      flavors[idx][field] = value;
+      if (field === 'name' || field === 'category') {
+        renderTable(); // Immediately re-sort and re-render if name or category changes
+      }
+    }
 
 
     function addFlavor() {
@@ -158,80 +180,82 @@ function updateFlavorField(idx, field, value) {
         alert('Please enter a flavor name.');
         return;
       }
-      flavors.push({ name, category, target, current: 0 });
+      flavors.push({ name, category, target, dipping: 0, holding: 0 });
       document.getElementById('flavorInput').value = '';
       document.getElementById('categoryInput').value = '';
       document.getElementById('targetInput').value = '';
       renderTable();
     }
 
-function saveFlavorsTSV() {
-  const headers = ["Flavor", "Category", "Target Buckets", "Current Buckets", "To Make"];
-  const lines = flavors.map(f =>
-    [
-      f.name,
-      f.category,
-      f.target,
-      f.current,
-      Math.max(0, (parseInt(f.target) || 0) - (parseInt(f.current) || 0))
-    ].join("\t")
-  );
-  const tsv = [headers.join("\t"), ...lines].join("\n");
+    function saveFlavorsTSV() {
+      const headers = ["Flavor", "Category", "Target Buckets", "In Dipping", "In Holding", "To Make"];
+      const lines = flavors.map(f =>
+        [
+          f.name,
+          f.category,
+          f.target,
+          f.dipping,
+          f.holding,
+          Math.max(0, (parseInt(f.target) || 0) - (parseInt(f.dipping) || 0) - (parseInt(f.holding) || 0))
+        ].join("\t")
+      );
+      const tsv = [headers.join("\t"), ...lines].join("\n");
 
-  // Format today's date as YYYY-MM-DD
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const dateStr = `${yyyy}-${mm}-${dd}`; // [2][3][6]
+      // Format today's date as YYYY-MM-DD
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`; // [2][3][6]
 
-  const filename = `count_and_run-${dateStr}.txt`;
+      const filename = `count_and_run-${dateStr}.txt`;
 
-  const blob = new Blob([tsv], { type: "text/tab-separated-values" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-
-function loadFlavorsTSV(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const text = e.target.result;
-    const lines = text.trim().split(/\r?\n/);
-    if (lines.length < 2) {
-      alert('File does not contain data.');
-      return;
+      const blob = new Blob([tsv], { type: "text/tab-separated-values" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
-    // Assume first line is header
-    flavors = [];
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split('\t');
-      if (cols.length < 4) continue; // skip incomplete rows
-      flavors.push({
-        name: cols[0],
-        category: cols[1],
-        target: parseInt(cols[2]) || 0,
-        current: parseInt(cols[3]) || 0
-      });
-    }
-    renderTable();
-  };
-  reader.readAsText(file);
-}
 
-function extractHexColor(str) {
-  // Regex for 3 or 6 digit hex color, with or without leading #
-  const match = str.match(/#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/);
-  return match ? match[0] : null;
-}
+
+    function loadFlavorsTSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.trim().split(/\r?\n/);
+        if (lines.length < 2) {
+          alert('File does not contain data.');
+          return;
+        }
+        // Assume first line is header
+        flavors = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].split('\t');
+          if (cols.length < 4) continue; // skip incomplete rows
+          flavors.push({
+            name: cols[0],
+            category: cols[1],
+            target: parseInt(cols[2]) || 0,
+            dipping: parseInt(cols[3]) || 0,
+            holding: parseInt(cols[4]) || 0
+          });
+        }
+        renderTable();
+      };
+      reader.readAsText(file);
+    }
+
+    function extractHexColor(str) {
+      // Regex for 3 or 6 digit hex color, with or without leading #
+      const match = str.match(/#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/);
+      return match ? match[0] : null;
+    }
 
 
     // Initial render
