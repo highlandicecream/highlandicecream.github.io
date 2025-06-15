@@ -171,6 +171,7 @@
         btnRemove.addEventListener('click', (e) => {
           if (confirm(`Are you sure you want to remove ${flavor.name}?`)) {
             flavors.splice(idx, 1);
+            saveFlavorsToClient();
             renderTable();
           } else {
             e.preventDefault();
@@ -185,11 +186,28 @@
 
     function updateFlavorField(idx, field, value) {
       flavors[idx][field] = value;
+      saveFlavorsToClient();
       if (field === 'name' || field === 'category') {
         renderTable(); // Immediately re-sort and re-render if name or category changes
       }
     }
 
+    function saveFlavorsToClient() {
+      const flavorsJSON = JSON.stringify(flavors);
+      localStorage.setItem('flavors', flavorsJSON);
+    }
+
+    function loadFlavorsFromClient() {
+      const flavorsJSON = localStorage.getItem('flavors');
+      if (flavorsJSON) {
+        try {
+          flavors = JSON.parse(flavorsJSON);
+          // renderTable(); // Immediately re-sort and re-render
+        } catch (error) {
+          console.error("Error parsing saved flavors:", error);
+        }
+      }
+    }
 
     function addFlavor() {
       const name = document.getElementById('flavorInput').value.trim();
@@ -265,6 +283,7 @@
             holding: parseInt(cols[4]) || 0
           });
         }
+        saveFlavorsToClient();
         renderTable();
       };
       reader.readAsText(file);
@@ -276,7 +295,8 @@
       return match ? match[0] : null;
     }
 
-
+    // Initial load from localstorage
+    loadFlavorsFromClient
     // Initial render
     renderTable();
   </script>
