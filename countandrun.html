@@ -153,7 +153,7 @@
 
         // To Make (computed)
         const tdToMake = document.createElement('td');
-        const toMake = Math.max(0, (parseInt(flavor.target) || 0) - (parseInt(flavor.dipping) || 0) - (parseInt(flavor.holding) || 0));
+        const toMake = Math.max(0, (parseInt(flavor.target) || 0) - Math.round((Number(flavor.dipping) || 0) + (Number(flavor.holding) || 0) - 0.1/*Prevent x.5 from rounding to x+1*/));
         tdToMake.textContent = toMake;
         tdToMake.style.fontWeight = 'bold';
         tdToMake.style.fontSize = '1.25em';
@@ -214,7 +214,7 @@
           f.target,
           f.dipping,
           f.holding,
-          Math.max(0, (parseInt(f.target) || 0) - (parseInt(f.dipping) || 0) - (parseInt(f.holding) || 0))
+          Math.max(0, (parseInt(f.target) || 0) - Math.round((Number(f.dipping) || 0) + (Number(f.holding) || 0) - 0.1/*Prevent x.5 from rounding to x+1*/))
         ].join("\t")
       );
       const tsv = [headers.join("\t"), ...lines].join("\n");
@@ -260,8 +260,8 @@
             name: cols[0],
             category: cols[1],
             target: parseInt(cols[2]) || 0,
-            dipping: parseInt(cols[3]) || 0,
-            holding: parseInt(cols[4]) || 0
+            dipping: Number(cols[3]) || 0,
+            holding: Number(cols[4]) || 0
           });
         }
         renderTable();
