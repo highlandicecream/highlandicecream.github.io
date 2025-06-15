@@ -45,8 +45,8 @@
   <table id="flavorTable">
     <thead>
       <tr>
-        <th>Flavor</th>
-        <th>Category</th>
+        <th><button onclick="renderTable(sort='flavor')">Flavor</button></th>
+        <th><button onclick="renderTable(sort='category')">Category</button></th>
         <th>Target Buckets</th>
         <th>In Dipping</th>
         <th>In Holding</th>
@@ -67,13 +67,15 @@
   <script>
     let flavors = [];
 
-    function renderTable() {
+    function renderTable(sort='category') {
       // Sort by category, then by name (both ascending, case-insensitive)
       flavors.sort((a, b) => {
-        const catA = (a.category || '').toLowerCase();
-        const catB = (b.category || '').toLowerCase();
-        if (catA < catB) return -1;
-        if (catA > catB) return 1;
+        if (sort == 'category') {
+          const catA = (a.category || '').toLowerCase();
+          const catB = (b.category || '').toLowerCase();
+          if (catA < catB) return -1;
+          if (catA > catB) return 1;
+        }
         const nameA = (a.name || '').toLowerCase();
         const nameB = (b.name || '').toLowerCase();
         if (nameA < nameB) return -1;
