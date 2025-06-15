@@ -128,6 +128,7 @@
         const inputDipping = document.createElement('input');
         inputDipping.type = 'number';
         inputDipping.min = 0;
+        inputDipping.step = 0.25;
         inputDipping.value = flavor.dipping;
         inputDipping.onchange = e => {
           updateFlavorField(idx, 'dipping', parseInt(e.target.value) || 0);
@@ -141,6 +142,7 @@
         const inputHolding = document.createElement('input');
         inputHolding.type = 'number';
         inputHolding.min = 0;
+        inputDipping.step = 0.25;
         inputHolding.value = flavor.holding;
         inputHolding.onchange = e => {
           updateFlavorField(idx, 'holding', parseInt(e.target.value) || 0);
