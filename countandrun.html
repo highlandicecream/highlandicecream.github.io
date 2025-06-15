@@ -131,7 +131,7 @@
         inputDipping.step = 0.25;
         inputDipping.value = flavor.dipping;
         inputDipping.onchange = e => {
-          updateFlavorField(idx, 'dipping', parseInt(e.target.value) || 0);
+          updateFlavorField(idx, 'dipping', Number(e.target.value) || 0);
           renderTable();
         };
         tdDipping.appendChild(inputDipping);
@@ -145,7 +145,7 @@
         inputDipping.step = 0.25;
         inputHolding.value = flavor.holding;
         inputHolding.onchange = e => {
-          updateFlavorField(idx, 'holding', parseInt(e.target.value) || 0);
+          updateFlavorField(idx, 'holding', Number(e.target.value) || 0);
           renderTable();
         };
         tdHolding.appendChild(inputHolding);
