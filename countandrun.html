@@ -70,10 +70,10 @@
     function renderTable() {
       // Sort by category, then by name (both ascending, case-insensitive)
       flavors.sort((a, b) => {
-        // const catA = (a.category || '').toLowerCase();
-        // const catB = (b.category || '').toLowerCase();
-        // if (catA < catB) return -1;
-        // if (catA > catB) return 1;
+        const catA = (a.category || '').toLowerCase();
+        const catB = (b.category || '').toLowerCase();
+        if (catA < catB) return -1;
+        if (catA > catB) return 1;
         const nameA = (a.name || '').toLowerCase();
         const nameB = (b.name || '').toLowerCase();
         if (nameA < nameB) return -1;
