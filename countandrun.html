@@ -66,11 +66,11 @@
 
   <script>
     let flavors = [];
-    let sort='category';
+    let currentSort='category';
 
-    function renderTable(sort=sort) {
+    function renderTable(sort=currentSort) {
       // Set the sort order
-      sort = sort;
+      currentSort = sort;
       // Sort by category (if sort='category'), then by name (both ascending, case-insensitive)
       flavors.sort((a, b) => {
         if (sort == 'category') {
